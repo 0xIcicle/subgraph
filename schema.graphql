@@ -59,6 +59,7 @@ type Pair @entity {
   id: ID!
 
   # mirrored from the smart contract
+  stable: Boolean!
   token0: Token!
   token1: Token!
   reserve0: BigDecimal!

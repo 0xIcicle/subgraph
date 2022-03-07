@@ -1,16 +1,16 @@
 specVersion: 0.0.2
-description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
-repository: https://github.com/Uniswap/uniswap-v2-subgraph
+description: Icicle is a decentralized protocol for automated token exchange on Avalanche.
+repository: https://github.com/0xicicle/subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: mainnet
+    network: avalanche
     source:
-      address: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
+      address: '0x157e253e6237fb2952e04dddd776a1fb480b9665'
       abi: Factory
-      startBlock: 10000834
+      startBlock: 11782314
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -29,12 +29,12 @@ dataSources:
         - name: ERC20NameBytes
           file: ./abis/ERC20NameBytes.json
       eventHandlers:
-        - event: PairCreated(indexed address,indexed address,address,uint256)
+        - event: PairCreated(indexed address,indexed address,bool,address,uint256)
           handler: handleNewPair
 templates:
   - kind: ethereum/contract
     name: Pair
-    network: mainnet
+    network: avalanche
     source:
       abi: Pair
     mapping:
@@ -59,5 +59,5 @@ templates:
           handler: handleSwap
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-        - event: Sync(uint112,uint112)
+        - event: Sync(uint256,uint256)
           handler: handleSync
