@@ -96,11 +96,13 @@ type Pair @entity {
   mints: [Mint!]! @derivedFrom(field: "pair")
   burns: [Burn!]! @derivedFrom(field: "pair")
   swaps: [Swap!]! @derivedFrom(field: "pair")
+  gauge: [Gauge!] @derivedFrom(field: "pair")
 }
 
 type User @entity {
   id: ID!
   liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
+  gaugePositions: [GaugePosition!] @derivedFrom(field: "user")
   usdSwapped: BigDecimal!
 }
 
@@ -299,4 +301,44 @@ type TokenDayData @entity {
 
   # price stats
   priceUSD: BigDecimal!
+}
+
+type GaugePosition @entity {
+  id: ID!
+  user: User!
+  gauge: Gauge!
+  gaugeBalance: BigDecimal!
+}
+
+type Gauge @entity {
+  # gauge address
+  id: ID!
+
+  pair: Pair!
+  bribe: Bribe!
+
+  totalSupply: BigDecimal!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+}
+
+type Bribe @entity {
+  # bribe address
+  id: ID!
+
+  pair: Pair!
+  gauge: Gauge!
+
+  rewards: [BribeReward!]! @derivedFrom(field: "bribe")
+}
+
+type BribeReward @entity {
+  # bribe address + token
+  id: ID!
+
+  bribe: Bribe!
+
+  rewardAmount: BigDecimal!
+  rewardRate: BigDecimal!
+  token: Token!
 }

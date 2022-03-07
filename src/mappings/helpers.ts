@@ -1,14 +1,16 @@
 /* eslint-disable prefer-const */
-import { log, BigInt, BigDecimal, Address, EthereumEvent } from '@graphprotocol/graph-ts'
+import { log, BigInt, BigDecimal, Address, ethereum } from '@graphprotocol/graph-ts'
 import { ERC20 } from '../types/Factory/ERC20'
 import { ERC20SymbolBytes } from '../types/Factory/ERC20SymbolBytes'
 import { ERC20NameBytes } from '../types/Factory/ERC20NameBytes'
-import { User, Bundle, Token, LiquidityPosition, LiquidityPositionSnapshot, Pair } from '../types/schema'
+import { User, Bundle, Gauge, Token, LiquidityPosition, LiquidityPositionSnapshot, GaugePosition, Pair } from '../types/schema'
+import { Router } from '../types/templates/Gauge/Router';
 import { Factory as FactoryContract } from '../types/templates/Pair/Factory'
 import { TokenDefinition } from './tokenDefinition'
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000'
-export const FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
+export const FACTORY_ADDRESS = '0x1ec98a27e6acffeb9226a6680b582ce762b2a45f'
+export const ROUTER_ADDRESS = '0x49b8e7d99040af4e45052052c7a509b4f4e14b9f'
 
 export let ZERO_BI = BigInt.fromI32(0)
 export let ONE_BI = BigInt.fromI32(1)
@@ -17,6 +19,8 @@ export let ONE_BD = BigDecimal.fromString('1')
 export let BI_18 = BigInt.fromI32(18)
 
 export let factoryContract = FactoryContract.bind(Address.fromString(FACTORY_ADDRESS))
+export let routerContract = Router.bind(Address.fromString(ROUTER_ADDRESS))
+
 
 // rebass tokens, dont count in tracked volume
 export let UNTRACKED_PAIRS: string[] = ['0x9ea3b5b4ec044b70375236a281986106457b20ef']
@@ -160,6 +164,23 @@ export function createLiquidityPosition(exchange: Address, user: Address): Liqui
   return liquidityTokenBalance as LiquidityPosition
 }
 
+export function createGaugePosition(gauge: Address, user: Address): GaugePosition {
+  let id = gauge
+    .toHexString()
+    .concat('-')
+    .concat(user.toHexString())
+  let gaugePositionBalance = GaugePosition.load(id)
+  if (gaugePositionBalance === null) {
+    gaugePositionBalance = new GaugePosition(id)
+    gaugePositionBalance.gaugeBalance = ZERO_BD
+    gaugePositionBalance.gauge = gauge.toHexString()
+    gaugePositionBalance.user = user.toHexString()
+    gaugePositionBalance.save()
+  }
+  if (gaugePositionBalance === null) log.error('LiquidityTokenBalance is null', [id])
+  return gaugePositionBalance as GaugePosition
+}
+
 export function createUser(address: Address): void {
   let user = User.load(address.toHexString())
   if (user === null) {
@@ -169,7 +190,7 @@ export function createUser(address: Address): void {
   }
 }
 
-export function createLiquiditySnapshot(position: LiquidityPosition, event: EthereumEvent): void {
+export function createLiquiditySnapshot(position: LiquidityPosition, event: ethereum.Event): void {
   let timestamp = event.block.timestamp.toI32()
   let bundle = Bundle.load('1')
   let pair = Pair.load(position.pair)
